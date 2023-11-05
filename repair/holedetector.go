@@ -1,10 +1,12 @@
 package repair
 
+import "main/geom"
+
 type pair struct {
 	frst, scnd uint32
 }
 
-func FindBorders(m Mesh) [][]int {
+func FindBorders(m geom.Mesh) [][]int {
 	fxn := findAdjacencyMatrix(m)
 	borders := facetBorders(m, fxn)
 
@@ -27,7 +29,7 @@ func FindBorders(m Mesh) [][]int {
 // Each row corresponds to a triangle
 // Each entry corresponds to a triangle's edge.
 // The value of each entry shows how many triangles are adjacent to that edge (if == 2 --> not boundary edge)
-func findAdjacencyMatrix(m Mesh) [][3]uint32 {
+func findAdjacencyMatrix(m geom.Mesh) [][3]uint32 {
 
 	// used to store how many times an edge appears in the mesh's triangles
 	edgeCount := make(map[pair]uint32)
@@ -66,7 +68,7 @@ func findAdjacencyMatrix(m Mesh) [][3]uint32 {
 }
 
 // void MeshAlgorithm::GetFacetBorders
-func facetBorders(m Mesh, fxn [][3]uint32) [][]uint32 {
+func facetBorders(m geom.Mesh, fxn [][3]uint32) [][]uint32 {
 	var openPointDegree = make(map[uint32]int8)
 
 	var borders [][]uint32

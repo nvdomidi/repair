@@ -2,6 +2,7 @@ package repair
 
 import (
 	"fmt"
+	"main/geom"
 	"math"
 	"sort"
 )
@@ -16,7 +17,7 @@ func reverseInts(ints []int) {
 // Function used to find the boundary loops.
 // Input: Faces of the mesh: slice of Faces (which is slice of ints)
 // Output: Slice of slice of integers = Slice of Loops
-func FindBoundaryLoops(faces []Face) [][]int {
+func FindBoundaryLoops(faces []geom.Face) [][]int {
 
 	edges := [][2]int{}
 	for i := range faces {
@@ -98,22 +99,22 @@ func FindBoundaryLoops(faces []Face) [][]int {
 
 }
 
-func computeTriangleArea(v []Vertex, i, j, k int) float32 {
-	AB := Add(v[j], Multiply(v[i], -1))
-	AC := Add(v[k], Multiply(v[i], -1))
+func computeTriangleArea(v []geom.Vertex, i, j, k int) float32 {
+	AB := geom.Add(v[j], geom.Multiply(v[i], -1))
+	AC := geom.Add(v[k], geom.Multiply(v[i], -1))
 
-	area := Length(CrossProduct(AB, AC)) * 0.5
+	area := geom.Length(geom.CrossProduct(AB, AC)) * 0.5
 	return area
 }
 
-func computeTriangleNormal(v []Vertex, i, j, k int) Vertex {
-	AB := Add(v[j], Multiply(v[i], -1))
-	AC := Add(v[k], Multiply(v[i], -1))
+func computeTriangleNormal(v []geom.Vertex, i, j, k int) geom.Vertex {
+	AB := geom.Add(v[j], geom.Multiply(v[i], -1))
+	AC := geom.Add(v[k], geom.Multiply(v[i], -1))
 
-	return Normalize(CrossProduct(AB, AC))
+	return geom.Normalize(geom.CrossProduct(AB, AC))
 }
 
-func cycle3Origins(b_face Face, n int) [2]int {
+func cycle3Origins(b_face geom.Face, n int) [2]int {
 	sort.Ints(b_face)
 	i := b_face[0]
 	j := b_face[1]
@@ -143,8 +144,8 @@ func cycle3Origins(b_face Face, n int) [2]int {
 // Function used to fill holes of a triangular mesh.
 // Input params: vertices and faces of original mesh. boundaryLoop = a slice of vertex numbers. method = "area" or "angle"
 // Output: returns slice of new faces that fill the hole
-func FillHoleLiepa(vertices []Vertex, faces []Face, boundaryLoop []int, method string) []Face {
-	var holeTriangles []Face
+func FillHoleLiepa(vertices []geom.Vertex, faces []geom.Face, boundaryLoop []int, method string) []geom.Face {
+	var holeTriangles []geom.Face
 	n := len(boundaryLoop)
 
 	// index 0 = for adjacent vertices. 1 = for vertices with 2 distance. 2 = for vertices with 3 distance. ... n-2 = for between first and last vertex.
@@ -213,16 +214,16 @@ func FillHoleLiepa(vertices []Vertex, faces []Face, boundaryLoop []int, method s
 			b[boundaryLoop[i]] = i
 		}
 
-		b_faces := make([]Face, len(faces))
+		b_faces := make([]geom.Face, len(faces))
 		for i := range faces {
-			f := Face{}
+			f := geom.Face{}
 			for j := range faces[i] {
 				f = append(f, b[faces[i][j]])
 			}
 			b_faces[i] = f // faces that are inside the boundary loop look something like this: [22 23 -1] --> that means vertices 22, 23 from boundary loop + something not in boundary loop
 		}
 
-		edgeFaceNormals := make([][]Vertex, n-1)
+		edgeFaceNormals := make([][]geom.Vertex, n-1)
 		for i := n - 1; i > 0; i-- {
 
 			var x int
@@ -231,9 +232,9 @@ func FillHoleLiepa(vertices []Vertex, faces []Face, boundaryLoop []int, method s
 			} else {
 				x = n
 			}
-			edgeFaceNormal := make([]Vertex, x)
+			edgeFaceNormal := make([]geom.Vertex, x)
 			for j := range edgeFaceNormal {
-				edgeFaceNormal[j] = Vertex{0, 0, 0}
+				edgeFaceNormal[j] = geom.Vertex{0, 0, 0}
 			}
 
 			edgeFaceNormals[n-1-i] = edgeFaceNormal
@@ -280,8 +281,8 @@ func FillHoleLiepa(vertices []Vertex, faces []Face, boundaryLoop []int, method s
 
 		// dot products are calculated to compare triangles adjacent to the loop, to the new triangles inside the loop
 		for i := 0; i < n-2; i++ {
-			dot0 := DotProduct(edgeFaceNormals[1][i], edgeFaceNormals[0][i])
-			dot1 := DotProduct(edgeFaceNormals[1][i], edgeFaceNormals[0][i+1])
+			dot0 := geom.DotProduct(edgeFaceNormals[1][i], edgeFaceNormals[0][i])
+			dot1 := geom.DotProduct(edgeFaceNormals[1][i], edgeFaceNormals[0][i+1])
 			dotProducts[1][i] = math.Min(float64(dot0), float64(dot1))
 		}
 
@@ -290,19 +291,19 @@ func FillHoleLiepa(vertices []Vertex, faces []Face, boundaryLoop []int, method s
 				max_d := -math.MaxFloat32
 				min_area := math.MaxFloat32
 				optimal_m := -1
-				var optimal_normal Vertex
+				var optimal_normal geom.Vertex
 
 				for m := 0; m < j-1; m++ {
 
 					m1 := j - m - 2
 					i1 := i + 1 + m
-					triangle := Face{boundaryLoop[i], boundaryLoop[i1], boundaryLoop[i+j]}
+					triangle := geom.Face{boundaryLoop[i], boundaryLoop[i1], boundaryLoop[i+j]}
 					normal := computeTriangleNormal(vertices, triangle[0], triangle[1], triangle[2])
 					// compare for created triangles inside the hole
-					d := math.Min(float64(DotProduct(normal, edgeFaceNormals[m][i])), float64(DotProduct(normal, edgeFaceNormals[m1][i1])))
+					d := math.Min(float64(geom.DotProduct(normal, edgeFaceNormals[m][i])), float64(geom.DotProduct(normal, edgeFaceNormals[m1][i1])))
 					if i == 0 && j == n-1 {
 						// compare to triangle adjacent and outside the hole
-						d = math.Min(d, float64(DotProduct(normal, edgeFaceNormals[0][n-1])))
+						d = math.Min(d, float64(geom.DotProduct(normal, edgeFaceNormals[0][n-1])))
 					}
 					d = math.Min(d, float64(dotProducts[m][i]))
 					d = math.Min(d, float64(dotProducts[m1][i1]))
@@ -351,7 +352,7 @@ func FillHoleLiepa(vertices []Vertex, faces []Face, boundaryLoop []int, method s
 
 	/// add hole triangles ...
 	for i := range triangles {
-		var holeTriangle Face
+		var holeTriangle geom.Face
 		triangle := triangles[i]
 		for j := 0; j < 3; j++ {
 			holeTriangle = append(holeTriangle, boundaryLoop[triangle[j]])

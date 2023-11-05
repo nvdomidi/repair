@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"main/geom"
 	"os"
 	"strconv"
 	"strings"
@@ -13,12 +14,12 @@ import (
 /* STL */
 // VertexMap is used to identify unique vertices and assign them indices
 type VertexMap struct {
-	vrtToInt map[Vertex]int
-	intToVrt map[int]Vertex
+	vrtToInt map[geom.Vertex]int
+	intToVrt map[int]geom.Vertex
 }
 
 // Read binary STL file and return as mesh
-func ReadBinarySTL(filepath string) Mesh {
+func ReadBinarySTL(filepath string) geom.Mesh {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
 		panic(err)
@@ -30,7 +31,7 @@ func ReadBinarySTL(filepath string) Mesh {
 
 	fmt.Println("NumTriangles: ", numTriangles)
 
-	triangles := make([][3]Vertex, numTriangles)
+	triangles := make([][3]geom.Vertex, numTriangles)
 
 	for i := 0; i < int(numTriangles); i++ {
 		buffer.Next(12)
@@ -40,8 +41,8 @@ func ReadBinarySTL(filepath string) Mesh {
 		buffer.Next(2)
 	}
 
-	vMap := make(map[Vertex]uint32)
-	var m Mesh
+	vMap := make(map[geom.Vertex]uint32)
+	var m geom.Mesh
 	for _, triangle := range triangles {
 		for _, vertex := range triangle {
 			if idx, exists := vMap[vertex]; !exists {
@@ -60,34 +61,34 @@ func ReadBinarySTL(filepath string) Mesh {
 /* OBJ */
 
 // This function is used when we have some vertices and no faces
-func WriteToOBJ(v []Vertex, filepath string) error {
-	file, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+// func WriteToOBJ(v []geom.Vertex, filepath string) error {
+// 	file, err := os.Create(filepath)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer file.Close()
 
-	// Write the vertices
-	for _, vert := range v {
-		_, err := fmt.Fprintf(file, "v %f %f %f\n", vert.X, vert.Y, vert.Z)
-		if err != nil {
-			return err
-		}
-	}
+// 	// Write the vertices
+// 	for _, vert := range v {
+// 		_, err := fmt.Fprintf(file, "v %f %f %f\n", vert.X, vert.Y, vert.Z)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
 
-	// Write the faces
-	for i, _ := range v {
-		_, err = fmt.Fprintf(file, "f %d %d\n", i+1, (i+1)%len(v)+1)
-		if err != nil {
-			return err
-		}
-	}
+// 	// Write the faces
+// 	for i, _ := range v {
+// 		_, err = fmt.Fprintf(file, "f %d %d\n", i+1, (i+1)%len(v)+1)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // This function is used to save a mesh to filepath
-func (m *Mesh) WriteToOBJ(filepath string) error {
+func WriteToOBJ(m geom.Mesh, filepath string) error {
 
 	file, err := os.Create(filepath)
 	if err != nil {
@@ -116,9 +117,9 @@ func (m *Mesh) WriteToOBJ(filepath string) error {
 }
 
 // Utility function that reads OBJ into slice of vertices and faces
-func ReadObj(filePath string) ([]Vertex, []Face, error) {
-	var vertices []Vertex
-	var faces []Face
+func ReadObj(filePath string) ([]geom.Vertex, []geom.Face, error) {
+	var vertices []geom.Vertex
+	var faces []geom.Face
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -138,7 +139,7 @@ func ReadObj(filePath string) ([]Vertex, []Face, error) {
 
 		switch words[0] {
 		case "v":
-			var vertex Vertex
+			var vertex geom.Vertex
 			// if length of vertex line is not 4 there's a problem
 			if len(words) != 4 {
 				return nil, nil, fmt.Errorf("Vertices must be 3D")
@@ -154,7 +155,7 @@ func ReadObj(filePath string) ([]Vertex, []Face, error) {
 			vertices = append(vertices, vertex)
 
 		case "f":
-			var face Face
+			var face geom.Face
 
 			for _, word := range words[1:] {
 				value, err := strconv.Atoi(word)

@@ -1,4 +1,4 @@
-package repair
+package geom
 
 import "math"
 
@@ -14,13 +14,13 @@ type Mesh struct {
 }
 
 type Line struct {
-	dir Vertex // line direction
-	p   Vertex // some point on the line
+	Dir Vertex // line direction
+	P   Vertex // some point on the line
 }
 
 type Plane struct {
-	normal Vertex
-	p      Vertex // some point on the plane
+	Normal Vertex
+	P      Vertex // some point on the plane
 }
 
 type Face []int
@@ -67,10 +67,10 @@ func Normalize(a Vertex) Vertex {
 	return Vertex{a.X / length, a.Y / length, a.Z / length}
 }
 
-func almostEqual(a, b float32) bool {
+func AlmostEqual(a, b float32) bool {
 	return math.Abs(float64(a-b)) < 1e-7
 }
 
-func pointsEqual(a, b Vertex) bool {
-	return almostEqual(a.X, b.X) && almostEqual(a.Y, b.Y) && almostEqual(a.Z, b.Z)
+func PointsEqual(a, b Vertex) bool {
+	return AlmostEqual(a.X, b.X) && AlmostEqual(a.Y, b.Y) && AlmostEqual(a.Z, b.Z)
 }
