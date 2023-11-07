@@ -57,17 +57,20 @@ Triangle-triangle intersections in 3D space can have different configurations. I
 [Figure 1](#fig1) shows all the different configurations stated above for 2D intersections (1 to 8) and [Figure 2](#fig2) shows all the configurations for 3D intersections (9 to 17).
 
 ![](/pics/2dintersections.png)
+<br>
 <span name = "fig1">*Figure 1: Different configurations for 2D triangle-triangle intersection.*</span>
 
 ![](/pics/3dintersections.png)
+<br>
 <span name = "fig2">*Figure 2: Different configurations for 3D triangle-triangle intersection.*</span>
 
 # 4.2. 2D Triangle-triangle Intersection
 
-Separating Axis Theorem (SAT) is a method used to determine whether two convex objects are intersecting. The idea is that if there exists an axis for which the intervals of projection of the two convex objects onto it do not intersect, then the objects do not intersect. The axis - if it exists - is known as a separating axis. In order to search for a separating axis, and consequently determine that the objects do not intersect, we only need to test edge normals for both objects. The reason for this is that it can be proven that if there exists at least one separating axis, then there also exists an edge normal that is a separating axis [[1]](#geo). Figure 3 shows how non-intersecting shapes can be separated along the found axis.
+Separating Axis Theorem (SAT) is a method used to determine whether two convex objects are intersecting. The idea is that if there exists an axis for which the intervals of projection of the two convex objects onto it do not intersect, then the objects do not intersect. The axis - if it exists - is known as a separating axis. In order to search for a separating axis, and consequently determine that the objects do not intersect, we only need to test edge normals for both objects. The reason for this is that it can be proven that if there exists at least one separating axis, then there also exists an edge normal that is a separating axis [[1]](#geo). [Figure 3](#fig3) shows how non-intersecting shapes can be separated along the found axis.
 
 ![](/pics/sat.png)
-*Figure 3: Left: Separation of convex polygons along the axis - Right: No possible separation [[1]](#geo)*.
+<br>
+<span name = "fig3">*Figure 3: Left: Separation of convex polygons along the axis - Right: No possible separation [[1]](#geo)*. </span>
 
 # References
 
