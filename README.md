@@ -1,12 +1,8 @@
-<style type="text/css">
-    ol { list-style-type: upper-alpha; }
-</style>
-
-# Overview
+# 1. Overview
 
 There are some requirements for a 3D mesh to be print-ready. For example, the objects must be watertight (have no holes), have no triangles intersecting with one another, have manifold geometry (every edge belongs to exactly two faces), etc. This project currently contains code for **removing self-intersections** and **filling holes** in a 3D mesh. These two can also be used in tandem, but there are some [known issues](https://github.com/nvdomidi/repair/issues/2#issuecomment-1798056218).
 
-# Project Structure
+# 2. Project Structure
 
 The project structure is like this:
 
@@ -18,7 +14,7 @@ The project structure is like this:
 - The `octree.go` package is used to subdivide the 3D space into an octree structure, used to detect intersections faster. This also has a [known issue](https://github.com/nvdomidi/repair/issues/2#issuecomment-1798056218).
 - The `io.go` package is used to work with OBJ and STL files.
 
-# Using the Code
+# 3. Using the Code
 
 In order to repair a mesh using this project, read main.go and do the following:
 
@@ -29,9 +25,13 @@ In order to repair a mesh using this project, read main.go and do the following:
 - Use `repair.FindBorders` to find the hole loops.
 - Use `repair.FillHoleLiepa` to fill the loops found. You can choose the triangle weight calculation method to be either "area" or "angle", based on papers by: [Barequet & Sharir](https://dl.acm.org/doi/10.1016/0167-8396%2894%2900011-G) and [Peter Liepa](https://diglib.eg.org/handle/10.2312/SGP.SGP03.200-206), respectively.
 
-# Removing Self Intersections
+# 4. Removing Self Intersections
 
-The objective is to develop an algorithm that given the vertex coordinates of a pair of triangles, can determine whether they intersect or not. Triangle-triangle intersections in 3D space can have different configurations. If two triangles $T_0$ and $T_1$ exist on planes $P_0$ and $P_1$, the following cases (depending on design choices) can be identified as intersections:
+The objective is to develop an algorithm that given the vertex coordinates of a pair of triangles, can determine whether they intersect or not.
+
+# 4.1. Intersection Configurations
+
+Triangle-triangle intersections in 3D space can have different configurations. If two triangles $T_0$ and $T_1$ exist on planes $P_0$ and $P_1$, the following cases (depending on design choices) can be identified as intersections:
 
 <ol> 
 <li> Planes are equal, and one vertex from a triangle lies inside the other. </li>
@@ -54,10 +54,21 @@ The objective is to develop an algorithm that given the vertex coordinates of a 
 <li> Planes arent equal, and the triangles share part of a common edge. </li>
 </ol>
 
-Figure 1 shows all the different configurations stated above for 2D intersections (A to H) and Figure 2 shows all the configurations for 3D intersections (I to Q).
+[Figure 1](#fig1) shows all the different configurations stated above for 2D intersections (1 to 8) and [Figure 2](#fig2) shows all the configurations for 3D intersections (9 to 17).
 
 ![](/pics/2dintersections.png)
-*Figure 1: Different configurations for 2D triangle-triangle intersection.*
+<span name = "fig1">*Figure 1: Different configurations for 2D triangle-triangle intersection.*</span>
 
 ![](/pics/3dintersections.png)
-*Figure 2: Different configurations for 3D triangle-triangle intersection*
+<span name = "fig2">*Figure 2: Different configurations for 3D triangle-triangle intersection.*</span>
+
+# 4.2. 2D Triangle-triangle Intersection
+
+Separating Axis Theorem (SAT) is a method used to determine whether two convex objects are intersecting. The idea is that if there exists an axis for which the intervals of projection of the two convex objects onto it do not intersect, then the objects do not intersect. The axis - if it exists - is known as a separating axis. In order to search for a separating axis, and consequently determine that the objects do not intersect, we only need to test edge normals for both objects. The reason for this is that it can be proven that if there exists at least one separating axis, then there also exists an edge normal that is a separating axis [[1]](#geo). Figure 3 shows how non-intersecting shapes can be separated along the found axis.
+
+![](/pics/sat.png)
+*Figure 3: Left: Separation of convex polygons along the axis - Right: No possible separation [[1]](#geo)*.
+
+# References
+
+1. <p name = "geo">D. E. Philip J. Schneider, "Geometric Tools for Computer Graphics," Elsevier Science Inc., 2002, pp. 265 - 271, 539 - 542, 347 - 376, 529 - 531. </p>
