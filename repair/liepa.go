@@ -1,7 +1,6 @@
 package repair
 
 import (
-	"fmt"
 	"main/geom"
 	"math"
 	"sort"
@@ -180,7 +179,7 @@ func FillHoleLiepa(vertices []geom.Vertex, faces []geom.Face, boundaryLoop []int
 	}
 
 	if method == "area" {
-		fmt.Println("Area-based approach à la Barequet and Sharir. Areas are used as weights.")
+		//fmt.Println("Area-based approach à la Barequet and Sharir. Areas are used as weights.")
 		// Area-based approach à la Barequet and Sharir. Areas are used as weights.
 		for j := 3; j < n; j++ {
 			for i := 0; i < n-j; i++ {
@@ -202,7 +201,7 @@ func FillHoleLiepa(vertices []geom.Vertex, faces []geom.Face, boundaryLoop []int
 		}
 
 	} else if method == "angle" {
-		fmt.Println("Dihedral-angle-based approach by Liepa. Angle-area pairs are used as weights.")
+		//fmt.Println("Dihedral-angle-based approach by Liepa. Angle-area pairs are used as weights.")
 		// Dihedral-angle-based approach by Liepa. Angle-area pairs are used as weights.
 
 		b := make([]int, len(vertices))

@@ -301,7 +301,7 @@ func OctreeFromMesh(m geom.Mesh) *Octree {
 		y: (maxy - miny) * 1.2,
 		z: (maxz - minz) * 1.2}
 
-	octree.maxLevels = 4
+	octree.maxLevels = 5
 	octree.maxObjects = 10
 	octree.level = 0
 

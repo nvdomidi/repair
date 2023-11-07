@@ -2,20 +2,24 @@ package main
 
 import (
 	"fmt"
-
 	"main/geom"
+	"main/io"
 	"main/repair"
 )
 
 func main() {
-	fmt.Println("hello world")
-	m := repair.ReadBinarySTL("stls/teapot_hole.stl")
 
-	repair.WriteToOBJ(m, "teapot_hole.obj")
+	//m := io.ReadBinarySTL("stls/teapot_hole.stl")
 
-	m = repair.RemoveSelfIntersections(m, true)
+	//io.WriteToOBJ(m, "objs/teapot_hole.obj")
 
-	repair.WriteToOBJ(m, "removed_self_intersections.obj")
+	m, _ := io.ReadObj("objs/teapot_hole.obj")
+
+	//repair.WriteToOBJ(m, "teapot_deleted.obj")
+
+	m = repair.RemoveSelfIntersections(m, false, true)
+
+	io.WriteToOBJ(m, "results/removed_self_intersections.obj")
 
 	vertices := m.V
 	faces := []geom.Face{}
@@ -28,28 +32,27 @@ func main() {
 		}
 	}
 
-	var mesh geom.Mesh
-	mesh.V = vertices
-	t := []uint32{}
-
 	loops := repair.FindBorders(m)
+	fmt.Println("number of loops: ", len(loops))
+
+	newTriangles := []uint32{}
 
 	for _, loop := range loops {
 
-		holeTriangles := repair.FillHoleLiepa(vertices, faces, loop, "area")
+		holeTriangles := repair.FillHoleLiepa(vertices, faces, loop, "angle")
 
 		faces = append(faces, holeTriangles...)
 
 		for i := range faces {
 			for j := range faces[i] {
-				t = append(t, uint32(faces[i][j]))
+				newTriangles = append(newTriangles, uint32(faces[i][j]))
 			}
 		}
 	}
 
-	mesh.T = t
+	m.T = newTriangles
 
-	repair.WriteToOBJ(mesh, "hole_filled.obj")
+	io.WriteToOBJ(m, "results/hole_filled.obj")
 
 	fmt.Println("succesfully filled hole")
 

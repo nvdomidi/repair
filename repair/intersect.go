@@ -3,6 +3,7 @@ package repair
 import (
 	"fmt"
 	"main/geom"
+	"main/io"
 	"main/octree"
 	"math"
 )
@@ -639,52 +640,77 @@ func TestIntersection(m geom.Mesh, t1, t2 uint32) (bool, error) {
 }
 
 // This function takes a mesh as input, removes the self-intersections and returns new mesh
-func RemoveSelfIntersections(m geom.Mesh, saveRemovedTriangles bool) geom.Mesh {
+func RemoveSelfIntersections(m geom.Mesh, useOctree bool, saveRemovedTriangles bool) geom.Mesh {
 
-	oct := octree.OctreeFromMesh(m)
 	intersectingIndices := make(map[uint32]bool)
 
-	numIntersections := 0
-	for i := 0; i < len(m.T)/3; i++ {
-		tri := []geom.Vertex{m.V[m.T[i*3]], m.V[m.T[i*3+1]], m.V[m.T[i*3+2]]}
-		_, nearbyTriangleIndices := oct.Retrieve(octree.TriangleToBounds(tri))
-		for j := 0; j < len(nearbyTriangleIndices); j++ {
+	if useOctree {
+		oct := octree.OctreeFromMesh(m)
+		numIntersections := 0
+		for i := 0; i < len(m.T)/3; i++ {
+			tri := []geom.Vertex{m.V[m.T[i*3]], m.V[m.T[i*3+1]], m.V[m.T[i*3+2]]}
+			_, nearbyTriangleIndices := oct.Retrieve(octree.TriangleToBounds(tri))
+			for j := 0; j < len(nearbyTriangleIndices); j++ {
 
-			idx := nearbyTriangleIndices[j]
-			if idx == uint32(i) {
-				continue
-			}
+				idx := nearbyTriangleIndices[j]
+				if idx == uint32(i) {
+					continue
+				}
 
-			isIntersecting, _ := TestIntersection(m, uint32(i), idx)
-			if isIntersecting {
-				numIntersections++
-				// i is intersecting with idx. just remove idx
-				intersectingIndices[idx] = true
+				isIntersecting, _ := TestIntersection(m, uint32(i), idx)
+				if isIntersecting {
+					numIntersections++
+					// i is intersecting with idx. just remove idx
+					intersectingIndices[idx] = true
 
-				if saveRemovedTriangles {
-					fmt.Println("triangle: ", i, " intersecting with: ", idx)
-					m2 := geom.Mesh{}
-					m2verts := []geom.Vertex{}
-					m2verts = append(m2verts, tri...)
+					if saveRemovedTriangles {
+						fmt.Println("triangle: ", i, " intersecting with: ", uint32(j))
+						m2 := geom.Mesh{}
+						m2verts := []geom.Vertex{}
+						m2verts = append(m2verts, tri...)
 
-					m2verts = append(m2verts, m.V[m.T[idx*3]])
-					m2verts = append(m2verts, m.V[m.T[idx*3+1]])
-					m2verts = append(m2verts, m.V[m.T[idx*3+2]])
-					m2.V = m2verts
-					m2.T = []uint32{0, 1, 2, 3, 4, 5}
-					filename := fmt.Sprintf("intersect/intersect%d.obj", numIntersections)
-					WriteToOBJ(m2, filename)
-					fmt.Println("saved: ", filename)
-
-					fmt.Println("v0 := Vertex{", m2verts[0].X, ",", m2verts[0].Y, ",", m2verts[0].Z, "}")
-					fmt.Println("v1 := Vertex{", m2verts[1].X, ",", m2verts[1].Y, ",", m2verts[1].Z, "}")
-					fmt.Println("v2 := Vertex{", m2verts[2].X, ",", m2verts[2].Y, ",", m2verts[2].Z, "}")
-					fmt.Println("v3 := Vertex{", m2verts[3].X, ",", m2verts[3].Y, ",", m2verts[3].Z, "}")
-					fmt.Println("v4 := Vertex{", m2verts[4].X, ",", m2verts[4].Y, ",", m2verts[4].Z, "}")
-					fmt.Println("v5 := Vertex{", m2verts[5].X, ",", m2verts[5].Y, ",", m2verts[5].Z, "}")
+						m2verts = append(m2verts, m.V[m.T[uint32(j)*3]])
+						m2verts = append(m2verts, m.V[m.T[uint32(j)*3+1]])
+						m2verts = append(m2verts, m.V[m.T[uint32(j)*3+2]])
+						m2.V = m2verts
+						m2.T = []uint32{0, 1, 2, 3, 4, 5}
+						filename := fmt.Sprintf("intrsct_obj/intersect%d.obj", numIntersections)
+						io.WriteToOBJ(m2, filename)
+						fmt.Println("saved: ", filename)
+					}
 				}
 
 			}
+		}
+	} else {
+		numIntersections := 0
+		for i := 0; i < len(m.T)/3; i++ {
+			tri := []geom.Vertex{m.V[m.T[i*3]], m.V[m.T[i*3+1]], m.V[m.T[i*3+2]]}
+			for j := i + 1; j < len(m.T)/3; j++ {
+				isIntersecting, _ := TestIntersection(m, uint32(i), uint32(j))
+				if isIntersecting {
+					numIntersections++
+					// i is intersecting with idx. just remove idx
+					intersectingIndices[uint32(j)] = true
+
+					if saveRemovedTriangles {
+						fmt.Println("triangle: ", i, " intersecting with: ", uint32(j))
+						m2 := geom.Mesh{}
+						m2verts := []geom.Vertex{}
+						m2verts = append(m2verts, tri...)
+
+						m2verts = append(m2verts, m.V[m.T[uint32(j)*3]])
+						m2verts = append(m2verts, m.V[m.T[uint32(j)*3+1]])
+						m2verts = append(m2verts, m.V[m.T[uint32(j)*3+2]])
+						m2.V = m2verts
+						m2.T = []uint32{0, 1, 2, 3, 4, 5}
+						filename := fmt.Sprintf("intrsct_obj/intersect%d.obj", numIntersections)
+						io.WriteToOBJ(m2, filename)
+						fmt.Println("saved: ", filename)
+					}
+				}
+			}
+
 		}
 	}
 
@@ -692,7 +718,6 @@ func RemoveSelfIntersections(m geom.Mesh, saveRemovedTriangles bool) geom.Mesh {
 
 	for i := 0; i < len(m.T)/3; i++ {
 		if intersectingIndices[uint32(i)] {
-			fmt.Println("triangle: ", i)
 			continue
 		} else {
 			newTriangles = append(newTriangles, []uint32{m.T[i*3], m.T[i*3+1], m.T[i*3+2]}...)
