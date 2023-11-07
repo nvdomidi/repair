@@ -102,12 +102,11 @@ In order to find the intersection intervals, we must first find the equation for
 $$P_1:\vec{n_1} \cdot P = s_1$$
 $$P_2:\vec{n_2} \cdot P = s_2$$
 - Then the line equation can be found as:
-$$
-\begin{aligned}
-a & =\frac{s_2 \vec{n}_1 \cdot \vec{n}_2-s_1\left\|\vec{n}_2\right\|^2}{\left(\vec{n}_1 \cdot \vec{n}_2\right)^2-\left\|\vec{n}_1\right\|^2\left\|\vec{n}_2\right\|^2} \\
-b & =\frac{s_1 \vec{n}_1 \cdot \vec{n}_2-s_2\left\|\vec{n}_1\right\|^2}{\left(\vec{n}_1 \cdot \vec{n}_2\right)^2-\left\|\vec{n}_1\right\|^2\left\|\vec{n}_2\right\|^2}
-\end{aligned}
-$$
+
+$$ a = \frac{s_2 \vec{n_1} \cdot \vec{n_2} - s_1 ||\vec{n_2}||^2}{(\vec{n_1} \cdot \vec{n_2})^2 - ||\vec{n_1}||^2||\vec{n_2}||^2}$$
+
+$$ b = \frac{s_1 \vec{n_1} \cdot \vec{n_2} - s_2 ||\vec{n_1}||^2}{(\vec{n_1} \cdot \vec{n_2})^2 - ||\vec{n_1}||^2||\vec{n_2}||^2}$$
+
 $$ L = P + t(\vec{n_1} \times \vec{n_2}) = (a\vec{n_1} + b\vec{n_2}) + t(\vec{n_1} \times \vec{n_2})$$
 
 Function `LineFromTwoPlanes` uses these equations to find the line at which two planes intersect.
