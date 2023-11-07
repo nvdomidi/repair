@@ -113,17 +113,13 @@ Function `LineFromTwoPlanes` uses these equations to find the line at which two 
 
 Now in order to calculate the intervals, the signed distances previously computed can be put to use. We know that one vertex of each triangle lies on the opposite side of $L$ from the other two. Assume $V_{0,0}, V_{0,1},V_{0,2}$ belong to triangle $0$ and $V_{1,0}, V_{1,1},V_{1,2}$ belong to triangle $1$. First the triangle vertices will be projected onto $L$:
 
-<span align="center">
-$`{V^{\prime}}_{0,i} = \vec{d} \cdot (V_{0,i} - P), i \in \{0,1,2\}`$
-</span>
+`$${V^{\prime}}_{0,i} = \vec{d} \cdot (V_{0,i} - P), i \in \{0,1,2\}$$`
 
 Where $\vec{d}$ is the direction vector and equal to $\vec{n_1} \times \vec{n_2}$. Then, the left and right bounds of the interval of intersection for triangle $0$ can be computed as:
 
-<span align="center">
 $`
 t_{0, i}=V_{0, i}^{\prime}+\left(V_{0,2}^{\prime}-V_{0, i}^{\prime}\right) \frac{{dist}_{V_{0, i}}}{{dist}_{V_{0, i}}-{dist}_{V_{0,2}}}, \quad i \in\{0,1\}
 `$
-</span>
 
 By comparing $t_{0,0}$ and $t_{0,1}$ to $t_{1,0}$ and $t_{1,0}$, we can find if there is an intersection. [Figure 5](#fig5) shows examples of overlapping and non-overlapping intervals.
 
