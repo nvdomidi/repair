@@ -113,7 +113,7 @@ Function `LineFromTwoPlanes` uses these equations to find the line at which two 
 
 Now in order to calculate the intervals, the signed distances previously computed can be put to use. We know that one vertex of each triangle lies on the opposite side of $L$ from the other two. Assume $V_{0,0}, V_{0,1},V_{0,2}$ belong to triangle $0$ and $V_{1,0}, V_{1,1},V_{1,2}$ belong to triangle $1$. First the triangle vertices will be projected onto $L$:
 
-$$V^{\prime}_{0,i} = \vec{d} \cdot (V_{0,i} - P), i \in \{0,1,2\}$$
+$${V^{\prime}}_{0,i} = \vec{d} \cdot (V_{0,i} - P), i \in \{0,1,2\}$$
 
 Where $\vec{d}$ is the direction vector and equal to $\vec{n_1} \times \vec{n_2}$. Then, the left and right bounds of the interval of intersection for triangle $0$ can be computed as:
 
