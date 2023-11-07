@@ -117,8 +117,7 @@ $$ V_{0,i}^{\prime} = \vec{d} \cdot (V_{0,i} - P), i \in \{0,1,2\} $$
 
 Where $\vec{d}$ is the direction vector and equal to $\vec{n_1} \times \vec{n_2}$. Then, the left and right bounds of the interval of intersection for triangle $0$ can be computed as:
 
-$$ t_{0, i}=V_{0, i}^{\prime}+(V_{0,2}^{\prime}-V_{0, i}^{\prime}) \frac{{dist}_{V_{0, i}}}{{dist}_{V_{0, i}}-{dist}_{V_{0,2}}}, i \in\{0,1\}
-$$
+$$ t_{0, i}=V_{0, i}^{\prime}+(V_{0,2}^{\prime}-V_{0, i}^{\prime}) \frac{{dist}_{V_{0, i}}}{{dist}_{V_{0, i}}-{dist}_{V_{0,2}}}, i \in\{0,1\} $$
 
 By comparing $t_{0,0}$ and $t_{0,1}$ to $t_{1,0}$ and $t_{1,0}$, we can find if there is an intersection. [Figure 5](#fig5) shows examples of overlapping and non-overlapping intervals.
 
