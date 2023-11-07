@@ -97,7 +97,7 @@ If the signed distances for each vertex of a triangle to the plane of the other 
 
 By rejecting these pair of triangles, we can confirm that the line $L$ at which the planes intersect will also intersect both triangles. The line will be clipped by both triangles into two intervals. If these two intervals overlap, then the triangles intersect; otherwise, they don’t.
 
-In order to find the intersection intervals, we must first find the equation for L:
+In order to find the intersection intervals, we must first find the equation for $L$:
 - By calculating the dot product between the normal vector of each plane and the point on it, we can find the Hessian Normal Form for each plane:
 $$P_1:\vec{n_1} \cdot P = s_1$$
 $$P_2:\vec{n_2} \cdot P = s_2$$
@@ -113,7 +113,7 @@ Function `LineFromTwoPlanes` uses these equations to find the line at which two 
 
 Now in order to calculate the intervals, the signed distances previously computed can be put to use. We know that one vertex of each triangle lies on the opposite side of $L$ from the other two. Assume $V_{0,0}, V_{0,1},V_{0,2}$ belong to triangle $0$ and $V_{1,0}, V_{1,1},V_{1,2}$ belong to triangle $1$. First the triangle vertices will be projected onto $L$:
 
-$$ V'_{0,i} = \vec{d} \cdot (V_{0,i} - P), i \in \{0,1,2\} $$
+$$V'_{0,i} = \vec{d} \cdot (V_{0,i} - P), i \in \{0,1,2\}$$
 
 Where $\vec{d}$ is the direction vector and equal to $\vec{n_1} \times \vec{n_2}$. Then, the left and right bounds of the interval of intersection for triangle $0$ can be computed as:
 
