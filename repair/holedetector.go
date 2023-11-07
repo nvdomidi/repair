@@ -1,3 +1,6 @@
+// Written by Pouria https://github.com/pouriamsz
+// Adapted by me to work with my own code
+
 package repair
 
 import "main/geom"
