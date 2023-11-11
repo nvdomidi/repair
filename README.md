@@ -220,16 +220,16 @@ The algorithm below is from Barequet and Sharir [[1]](#barq). The notation is mo
 
 Let $S := 0$. Invoke the recursive function _"Trace"_ with the parameters $(0,n-1)$.
 
-Function Trace$(i,k)$:
+Function Trace $(i,k)$:
 
 if i + 2 = k then $S := S \cup \Delta v_iv_ov_k$
 
 else do:
 
 1. let $o := \lambda_{i,k}$
-2. if $o \not ={i+1}$ then Trace$(i,o)$
+2. if $o \not ={i+1}$ then Trace $(i,o)$
 3. $S := S \cup \Delta v_iv_ov_k$
-4. if $o \not ={k-1}$ then Trace$(o,k)$
+4. if $o \not ={k-1}$ then Trace $(o,k)$
 
 od
 
