@@ -23,7 +23,7 @@ In order to repair a mesh using this project, read main.go and do the following:
   - The first flag `useOctree` specifies whether to use the octree structure or not. Only use if mesh is very large.
   - The second flag `saveRemovedTriangles` can be set to save intersections found in folder "intrsct_obj". Use this to verify whether detected intersections are correct or not.
 - Use `repair.FindBorders` to find the hole loops.
-- Use `repair.FillHoleLiepa` to fill the loops found. You can choose the triangle weight calculation method to be either "area" or "angle", based on papers by: [Barequet & Sharir](https://dl.acm.org/doi/10.1016/0167-8396%2894%2900011-G) and [Peter Liepa](https://diglib.eg.org/handle/10.2312/SGP.SGP03.200-206), respectively.
+- Use `repair.FillHoleLiepa` to fill the loops found. You can choose the triangle weight calculation method to be either "area" or "angle", based on papers by: Barequet & Sharir [[1]](#barq) and Peter Liepa [[2]](#liepa), respectively.
 
 # 4. Removing Self Intersections
 
@@ -70,23 +70,23 @@ Triangle-triangle intersections in 3D space can have different configurations. I
 
 ## 4.2. 2D Triangle-triangle Intersection
 
-Separating Axis Theorem (SAT) is a method used to determine whether two convex objects are intersecting. The idea is that if there exists an axis for which the intervals of projection of the two convex objects onto it do not intersect, then the objects do not intersect. The axis - if it exists - is known as a separating axis. In order to search for a separating axis, and consequently determine that the objects do not intersect, we only need to test edge normals for both objects. The reason for this is that it can be proven that if there exists at least one separating axis, then there also exists an edge normal that is a separating axis [[1]](#geo). [Figure 3](#fig3) shows how non-intersecting shapes can be separated along the found axis.
+Separating Axis Theorem (SAT) is a method used to determine whether two convex objects are intersecting. The idea is that if there exists an axis for which the intervals of projection of the two convex objects onto it do not intersect, then the objects do not intersect. The axis - if it exists - is known as a separating axis. In order to search for a separating axis, and consequently determine that the objects do not intersect, we only need to test edge normals for both objects. The reason for this is that it can be proven that if there exists at least one separating axis, then there also exists an edge normal that is a separating axis [[3]](#geo). [Figure 3](#fig3) shows how non-intersecting shapes can be separated along the found axis.
 
 ![](/pics/sat.png)
 <br>
-<span name = "fig3">*Figure 3: Left: Separation of convex polygons along the axis - Right: No possible separation [[1]](#geo)*. </span>
+<span name = "fig3">*Figure 3: Left: Separation of convex polygons along the axis - Right: No possible separation [[3]](#geo)*. </span>
 <br>
 
 A straightforward approach to implementing an algorithm for this method would be to consider each edge normal as a candidate axis, project every vertex onto it (simply by calculating the dot product of normal vector and vertex), find the maximum projection value from the left polygon and the minimum from the right one, compare them and return true only if there is a separation. Function `Test2DIntersection` in `intersect.go` implements this method.
 
 ## 4.3. 3D Triangle-triangle Intersection
 
-An easy approach to solving this problem would be to reduce it to edge-face intersection checks between each edge of one triangle and the face of the other. However, Moller and Haines [[2]](#render) propose a method which is also mentioned in [[1]](#geo). In this method they first reject pairs of triangles whose vertices exist on one side of each other’s planes. This is done by computing the signed distance of each point to the other triangle’s plane.
+An easy approach to solving this problem would be to reduce it to edge-face intersection checks between each edge of one triangle and the face of the other. However, Moller and Haines [[4]](#render) propose a method which is also mentioned in [[3]](#geo). In this method they first reject pairs of triangles whose vertices exist on one side of each other’s planes. This is done by computing the signed distance of each point to the other triangle’s plane.
 
 Given three points in 3D space $v_1,v_2,v_3$, we must first find the plane equation for this triangle. To represent a plane, only the normal vector and a point on the plane is needed. The normal vector $\hat{n}$ of the plane can be calculated as the normalized cross product of vectors formed by subtracting $v_2$ from $v_1$ and $v_3$ from $v_1$:
 $$\hat{n} = \frac{v_1 - v_2}{|| v_1 - v_2 ||} \times \frac{v_1 - v_3}{|| v_1 - v_3 ||}$$
 
-And the point can be simply chosen to be $v_1$. The signed distance from a point $x_0$ to the plane is given by $D = \hat{n} \cdot (x_0 - v_1)$ [[3]](#mathworld).
+And the point can be simply chosen to be $v_1$. The signed distance from a point $x_0$ to the plane is given by $D = \hat{n} \cdot (x_0 - v_1)$ [[5]](#mathworld).
 
 If the signed distances for each vertex of a triangle to the plane of the other triangle all have the same sign, then the vertices of that triangle exist on one side of the other triangle’s plane. Function `TestOnOneSideOfPlane` implements this. [Figure 4](#fig4) shows what is meant by existing on one side of one another’s planes.
 
@@ -123,7 +123,7 @@ By comparing $t_{0,0}$ and $t_{0,1}$ to $t_{1,0}$ and $t_{1,0}$, we can find if 
 
 ![](/pics/intervals.png)
 <br>
-<span name = "fig5">*Figure 5: Left: Overlapping intervals. - Right: Non-overlapping intervals. [[1]](#geo)* </span>
+<span name = "fig5">*Figure 5: Left: Overlapping intervals. - Right: Non-overlapping intervals. [[3]](#geo)* </span>
 <br>
 
 The 3D intersection check is implemented inside the `TestIntersection` function.
@@ -138,7 +138,7 @@ For 3D configurations, when testing whether one triangle is on one side of the o
 
 ## 4.5. Triangle-triangle Intersection Algorithm
 
-The entire triangle-triangle intersection pipeline is explained below:
+The entire triangle-triangle intersection pipeline is explained below. You can read the ``TestIntersection`` function for details.
 
 
 1. Check if triangles are degenerate. If so, exist the program.
@@ -179,6 +179,64 @@ The entire triangle-triangle intersection pipeline is explained below:
     * If the intervals are overlapping, there is an intersection.
     * Otherwise, there is no intersection.
 
+# 5. Octree Structure
+
+To avoid the inefficiency of checking each triangle in a mesh against every other triangle (e.g., 89,075,844 checks for a 9,438-triangle mesh), an octree structure is employed. This approach reduces the number of intersection checks significantly (e.g., to 626,066 for the same mesh).
+
+The octree divides 3D space into a box-shaped boundary. Each node is either a "leaf" node that contains objects, or it is an "inner" node that contains 8 smaller octrees. The objects within each node will be mesh triangles. You can read the implementation in ``octree.go``.
+
+**Implementation steps:**
+
+1. Creating the octree:
+    * Initialize the root node as a "leaf" with a specified 3D boundary, maximum recursion level, and maximum objects per node.
+    * Determine the boundary for each triangle and insert it into the octree.
+2. Inserting objects:
+    * For each object to be added, find "leaf" nodes corresponding to the boundary. Insert the triangles into these nodes. Upon reaching maximum capacity, subdivide the node into 8 smaller cubes and recursively insert triangles into the correct child nodes.
+3. Retreiving objects:
+    * Recursively search for "leaf" nodes within a specified boundary.
+    * Return all objects within these nodes, facilitating efficient intersection checks with nearby triangles.
+
+# 6. Hole-filling
+
+The automatic hole-filling algorithm of Peter Liepa [[2]](#liepa) was employed for this part. The file ``liepa.go`` contains this code and separate repo can be found [here](https://github.com/nvdomidi/HoleFillingGo). The hole-filling algorithm depends on ``holedetector.go`` to find the boundary loops. The original paper contains the complete explanation of the algorithm, but an overview is also given here:
+
+This algorithm is based on using dynamic programming and it computes "minimum-weights" for series of ordered vertices iteratively. Note: **_weights_** are assigned to potential triangles and **_minumum-weights_** are calculated for series of vertices. The weights look something like $\Omega(v_i,v_k,v_m)$ - determining how good a potential triangle would be - and minimum-weights look something like $W_{i,i+m}$ - starting from $m=1$ and eventually calculating $W_{0,n-1}$. When all the minimum-weights are calculated and stored, they can be used to retreive the best triangulation of the hole.
+
+The weight function $\Omega$ can be chosen to be either: 
+1. The area of the triangle (which is what Barequet and Sharir [[1]](#barq) use in their method).
+2. An ordered pair of the largest dihedral angle of the triangle with adjacent triangles + the area of the triangle (what Peter Liepa [[2]](#liepa) uses).
+
+## 6.1. The Hole-filling Algorithm
+
+The hole-filling algorithm is performed as such:
+1. Minimum-weights between adjacent vertices are set to be zero. Minimum-weights between vertices with 2 distance are set to be the weight of the triangle between them.
+2. Find the minimum-weights for series of vertices with 3 distance, then 4, 5, ... until the minimum-weight for the entire hole is found. To find $W_{i,k}$, change $m$ between $i$ (the starting vertex) and $k$ (the last vertex), calculate $W_{i,m}$, $W_{m,k}$ and the weight of the triangle between these three $\Omega(v_i, v_m, v_k)$, and add these together. The index $m$ at which the minimum value for $W_{i,k}$ is found will be saved as $\lambda_{i,k}$.
+3. Repeat step 2 until $W_{0,n-1}$ is found.
+4. Recover the triangulation using the $\lambda_{i,k}$ values saved. The triangulation is performed by calling the _"Trace"_ method described by Barequet and Sharir [[1]](#barq).
+
+## 6.2. Recovering the Triangles (Trace Algorithm)
+
+The algorithm below is from Barequet and Sharir [[1]](#barq). The notation is modified to match the previous section.
+
+Let $S := 0$. Invoke the recursive function _"Trace"_ with the parameters $(0,n-1)$.
+
+Function Trace$(i,k)$:
+
+if i + 2 = k then $S := S \cup \Delta v_iv_ov_k$
+
+else do:
+
+1. let $o := \lambda_{i,k}$
+2. if $o \not ={i+1}$ then Trace$(i,o)$
+3. $S := S \cup \Delta v_iv_ov_k$
+4. if $o \not ={k-1}$ then Trace$(o,k)$
+
+od
+
+This recursive method uses the minimum-weights and the indices calculated to perform triangulation.
+
+
+
 
 
     
@@ -186,6 +244,8 @@ The entire triangle-triangle intersection pipeline is explained below:
 
 # References
 
-1. <span name = "geo">D. E. Philip J. Schneider, "Geometric Tools for Computer Graphics," Elsevier Science Inc., 2002, pp. 265 - 271, 539 - 542, 347 - 376, 529 - 531. </span>
-2. <span name = "render">E. H. Tomas Akenine-Moller, Real-Time Rendering, Fourth Edition. </span>
-3. <span name = "mathworld"> W. MathWorld, "Point-Plane Distance," [Online]. Available: https://mathworld.wolfram.com/Point-PlaneDistance.html. </span>
+1. <span name = "barq"> M. S. Gill Barequet, "Filling Gaps in the Boundary of a Polyhedron," Computer-Aided Geometric Design, pp. 207-229, 1995. </span>
+2. <span name = "liepa"> P. Liepa, "Filling Holes in Meshes," Eurographics Symposium on Geometry Processing, 2003. </span>
+3. <span name = "geo">D. E. Philip J. Schneider, "Geometric Tools for Computer Graphics," Elsevier Science Inc., 2002, pp. 265 - 271, 539 - 542, 347 - 376, 529 - 531. </span>
+4. <span name = "render">E. H. Tomas Akenine-Moller, Real-Time Rendering, Fourth Edition. </span>
+5. <span name = "mathworld"> W. MathWorld, "Point-Plane Distance," [Online]. Available: https://mathworld.wolfram.com/Point-PlaneDistance.html. </span>
