@@ -59,25 +59,29 @@ Triangle-triangle intersections in 3D space can have different configurations. I
 <p align="center">
 <img src = "/pics/2dintersections.png">
 <br>
-<span name = "fig1">*Figure 1: Different configurations for 2D triangle-triangle intersection.*</span>
+<span name = "fig1"><em>Figure 1: Different configurations for 2D triangle-triangle intersection.</em></span>
 <br>
 <br>
 </p>
 
-![](/pics/3dintersections.png)
+<p align="center">
+<img src = "/pics/3dintersections.png">
 <br>
-<span name = "fig2">*Figure 2: Different configurations for 3D triangle-triangle intersection.*</span>
+<span name = "fig2"><em>Figure 2: Different configurations for 3D triangle-triangle intersection.</em></span>
 <br>
 <br>
+</p>
 
 ## 4.2. 2D Triangle-triangle Intersection
 
 Separating Axis Theorem (SAT) is a method used to determine whether two convex objects are intersecting. The idea is that if there exists an axis for which the intervals of projection of the two convex objects onto it do not intersect, then the objects do not intersect. The axis - if it exists - is known as a separating axis. In order to search for a separating axis, and consequently determine that the objects do not intersect, we only need to test edge normals for both objects. The reason for this is that it can be proven that if there exists at least one separating axis, then there also exists an edge normal that is a separating axis [[3]](#geo). [Figure 3](#fig3) shows how non-intersecting shapes can be separated along the found axis.
 
-![](/pics/sat.png)
+<p align="center">
+<img src = "/pics/sat.png">
 <br>
-<span name = "fig3">*Figure 3: Left: Separation of convex polygons along the axis - Right: No possible separation [[3]](#geo)*. </span>
+<span name = "fig3"><em>Figure 3: Left: Separation of convex polygons along the axis - Right: No possible separation [[3]](#geo)</em>. </span>
 <br>
+</p>
 
 A straightforward approach to implementing an algorithm for this method would be to consider each edge normal as a candidate axis, project every vertex onto it (simply by calculating the dot product of normal vector and vertex), find the maximum projection value from the left polygon and the minimum from the right one, compare them and return true only if there is a separation. Function `Test2DIntersection` in `intersect.go` implements this method.
 
@@ -92,10 +96,12 @@ And the point can be simply chosen to be $v_1$. The signed distance from a point
 
 If the signed distances for each vertex of a triangle to the plane of the other triangle all have the same sign, then the vertices of that triangle exist on one side of the other triangle’s plane. Function `TestOnOneSideOfPlane` implements this. [Figure 4](#fig4) shows what is meant by existing on one side of one another’s planes.
 
-![](/pics/oneside.png)
+<p align="center">
+<img src = "/pics/oneside.png">
 <br>
-<span name = "fig4">*Figure 4: Triangle vertices exist on one side of each other’s planes.* </span>
+<span name = "fig4"><em>Figure 4: Triangle vertices exist on one side of each other’s planes.</em></span>
 <br>
+</p>
 
 By rejecting these pair of triangles, we can confirm that the line $L$ at which the planes intersect will also intersect both triangles. The line will be clipped by both triangles into two intervals. If these two intervals overlap, then the triangles intersect; otherwise, they don’t.
 
@@ -123,10 +129,12 @@ $$ t_{0, i}=V_{0, i}^{\prime}+ (V_{0,2}^{\prime}-V_{0, i}^{\prime}) \frac{dist_{
 
 By comparing $t_{0,0}$ and $t_{0,1}$ to $t_{1,0}$ and $t_{1,0}$, we can find if there is an intersection. [Figure 5](#fig5) shows examples of overlapping and non-overlapping intervals.
 
-![](/pics/intervals.png)
+<p align="center">
+<img src = "/pics/intervals.png">
 <br>
-<span name = "fig5">*Figure 5: Left: Overlapping intervals. - Right: Non-overlapping intervals. [[3]](#geo)* </span>
+<span name = "fig5"><em>Figure 5: Left: Overlapping intervals. - Right: Non-overlapping intervals. [[3]](#geo)</em></span>
 <br>
+</p>
 
 The 3D intersection check is implemented inside the `TestIntersection` function.
 
