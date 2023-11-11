@@ -56,11 +56,13 @@ Triangle-triangle intersections in 3D space can have different configurations. I
 
 [Figure 1](#fig1) shows all the different configurations stated above for 2D intersections (1 to 8) and [Figure 2](#fig2) shows all the configurations for 3D intersections (9 to 17).
 
-![](/pics/2dintersections.png)
+<p align="center">
+<img src = "/pics/2dintersections.png">
 <br>
 <span name = "fig1">*Figure 1: Different configurations for 2D triangle-triangle intersection.*</span>
 <br>
 <br>
+</p>
 
 ![](/pics/3dintersections.png)
 <br>
