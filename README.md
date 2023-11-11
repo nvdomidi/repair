@@ -29,7 +29,7 @@ In order to repair a mesh using this project, read main.go and do the following:
 
 The objective is to develop an algorithm that given the vertex coordinates of a pair of triangles, can determine whether they intersect or not.
 
-# 4.1. Intersection Configurations
+## 4.1. Intersection Configurations
 
 Triangle-triangle intersections in 3D space can have different configurations. If two triangles $T_0$ and $T_1$ exist on planes $P_0$ and $P_1$, the following cases (depending on design choices) can be identified as intersections:
 
@@ -68,7 +68,7 @@ Triangle-triangle intersections in 3D space can have different configurations. I
 <br>
 <br>
 
-# 4.2. 2D Triangle-triangle Intersection
+## 4.2. 2D Triangle-triangle Intersection
 
 Separating Axis Theorem (SAT) is a method used to determine whether two convex objects are intersecting. The idea is that if there exists an axis for which the intervals of projection of the two convex objects onto it do not intersect, then the objects do not intersect. The axis - if it exists - is known as a separating axis. In order to search for a separating axis, and consequently determine that the objects do not intersect, we only need to test edge normals for both objects. The reason for this is that it can be proven that if there exists at least one separating axis, then there also exists an edge normal that is a separating axis [[1]](#geo). [Figure 3](#fig3) shows how non-intersecting shapes can be separated along the found axis.
 
@@ -79,7 +79,7 @@ Separating Axis Theorem (SAT) is a method used to determine whether two convex o
 
 A straightforward approach to implementing an algorithm for this method would be to consider each edge normal as a candidate axis, project every vertex onto it (simply by calculating the dot product of normal vector and vertex), find the maximum projection value from the left polygon and the minimum from the right one, compare them and return true only if there is a separation. Function `Test2DIntersection` in `intersect.go` implements this method.
 
-# 4.3. 3D Triangle-triangle Intersection
+## 4.3. 3D Triangle-triangle Intersection
 
 An easy approach to solving this problem would be to reduce it to edge-face intersection checks between each edge of one triangle and the face of the other. However, Moller and Haines [[2]](#render) propose a method which is also mentioned in [[1]](#geo). In this method they first reject pairs of triangles whose vertices exist on one side of each other’s planes. This is done by computing the signed distance of each point to the other triangle’s plane.
 
@@ -127,6 +127,61 @@ By comparing $t_{0,0}$ and $t_{0,1}$ to $t_{1,0}$ and $t_{1,0}$, we can find if 
 <br>
 
 The 3D intersection check is implemented inside the `TestIntersection` function.
+
+## 4.4. Intersection Edge Cases
+
+We consider cases (5-8) to be 2D edge cases and cases (12-17) to be 3D edge cases. That means triangle vertices are touching the other triangle (getting very close to it) without penetrating it. In a valid mesh, adjacent triangles share vertices and edges. That means cases 6, 7, 15 and 16 can exist and should not be identified as intersections. The other edge cases will be considered to be intersections. So our goal is to identify whether two triangles are in an edge case configuration and if so, are they considered to be intersections or not.
+
+For 2D configurations, after computing the projection intervals onto the separation axis, these intervals can be compared to each other. If these intervals are touching each other – that means minimum of one interval is very close to maximum of the other interval – there is a high probability (but it’s not guaranteed) that the configuration is an edge case. This can be further confirmed by performing a point-in-polygon test.
+
+For 3D configurations, when testing whether one triangle is on one side of the other triangle’s plane, the signed distances of the vertices are computed. Vertices that have zero distance to the other triangle’s plane may create an edge case. Those vertices, along with the vertices of the other triangle can used in a 2D point-in-polygon test to find out whether they are touching the other triangle or not.
+
+## 4.5. Triangle-triangle Intersection Algorithm
+
+The entire triangle-triangle intersection pipeline is explained below:
+
+
+1. Check if triangles are degenerate. If so, exist the program.
+2. Compute the plane $P_0$ for the first triangle $T_0$.
+3. Order the vertices of both triangles counter-clockwise rotation.  
+4. Check if vertices from $T_1$ are on one side of $T_0$.
+    4.1. Calculate signed distances of each vertex from $T_1$ to plane $P_0$.
+    4.2. Store vertices with positive, negative and zero distances separately.
+    4.3. If there is at least one positive distance vertex and at least one negative, that means the triangle exists on both sides of the plane, so it is not on one side.
+    4.4. If there are three zero distance vertices, that means the triangle exists on the other triangle’s plane, so not on one side.
+    4.5. Return whether the vertices are on one side + positive distance vertices + negative + zeros.
+5. If there are less than three zero distance vertices, that means the triangles are in 3D space, so perform a 3D edge case test:
+    5.1. Set edgeCase to False and valid to True.
+    5.2. If any of the vertices from $T_1$ are inside $T_0$, they must be equal to a vertex from $T_0$.
+        5.2.1. For each vertex from $T_1$, rotate it along with all vertices from $T_0$ to be parallel to XY plane.
+        5.2.2. Drop Z values and perform point-in-polygon test. Point-in-polygon is performed by first checking whether the point is almost equal to a vertex from the polygon. Then it checks whether it lies on a horizontal edge (constant Y value). Then it checks whether it lies on a non-horizontal edge. At last, it performs the check which is similar to shooting a ray to the right of the point, counting the number of times it intersects with an edge of the polygon. If the number is even, it is outside, if odd, it is inside. Lastly, return true if any of these conditions are satisfied.
+        5.2.3. If a point is inside the polygon, then edgeCase is set to true.
+        5.2.4. If a point is inside the polygon, it must be equal to one of the vertices of that polygon. If this condition is false, it means it is lying somewhere on the edge or inside the area of that triangle. Therefore, set valid to false.
+    5.3. Check if the edges between the positive distance and negative distance vertices are intersecting with the edges of $T_0$. If any of them are intersecting, then it is an edge case and it is not valid.
+6. If there is an edge case and it is not valid, we assume there is an intersection. If there is an edge case and it is valid, we assume the triangles do not intersect.
+7. If vertices from $T_1$ are not on one side of $P_0$, they must be ordered such that the two vertices on one side are separate from the vertex on the other side (Important for the input to 3D intersection test).
+    7.1. If two positive distance vertices and one negative, first return positives then negative.
+    7.2. If two negative distance vertices and one positive, first return negatives then positive.
+    7.3. If one positive, one negative and one zero, first return negative, then zero, then positive (not exactly like the previous two, but it still works).
+8. If all vertices from $T_1$ are on one side of $T_0$, and the triangles have not been identified as an edge case, return “no intersection”.
+9. If there are three vertices on the plane of the other triangle, perform 2D separating axis intersection check. If the intervals are touching each other, consider it an edge case, and check if it is a valid edge case.
+    9.1. For each vertex of $T_0$, perform point-in-polygon test against $T_1$. If it is inside the polygon, it must be equal to a vertex from $T_1$. If it is inside but not equal, then it is not valid.
+    9.2. Repeat the same for $T_1$.
+10. Handle 2D intersection as such:
+    10.1. If the projected intervals are overlapping, there is an intersection in 2D.
+    10.2. If the intervals are not overlapping, but touching each other (edge case), then test if it is an acceptable edge case. If acceptable = no intersection, else = intersection.
+    10.3. If there exists a separating axis, then there is no intersection.
+11. Find plane $P_1$ for triangle $T_1$. Repeat steps 5, 6, 7 and 8 for vertices of $T_0$ against $P_1$ and its triangle $T_1$.
+12. If the algorithm reaches this part, the triangles are in 3D, they are not an edge case and they do not exist on one side of each other’s planes. Compute the intersection line of the two planes, and perform the 3D intersection test.
+    12.1. Calculate the intervals that the triangles intersect with the line ($t_{00}$ to $t_{01}$ and $t_{10}$ to $t_{11}$). This is done according to the equations in the previous report.
+    12.2. If one of the intervals has close to zero length and is almost equal to one end of the other interval, consider not intersecting (this is a special case that arises when testing many triangles).
+    12.3. If the intervals are nearly touching return no intersection (we previously handled edge cases).
+    12.4. If the intervals are overlapping, there is an intersection.
+    12.5. Otherwise, there is no intersection.
+
+
+
+    
 
 
 # References
